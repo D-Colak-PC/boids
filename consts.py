@@ -1,25 +1,22 @@
-from os.path import join
-from pygame.image import load
-from numpy import array, ndarray
-from pygame.math import Vector2
+"""Configuration constants for the boids simulation."""
 
+from numpy import array, ndarray
+
+# Display settings
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
-WINDOW_TITLE = "Boids by Dennis Colak"
+WINDOW_TITLE = "Boids Simulation"
 FPS = 60
-DT = 1 / FPS  # Delta time in seconds
+DT = 1 / FPS
 
 # Colors
 WHITE = "#ffffff"
 BG = "#003a59"
-BLACK = "#000000"
 GREEN = "#00ff00"
+RED = "#ff0000"
 
-# Boids
-BOID_BMP_PATH = join("assets", "boid.bmp")
-BOID_BMP = load(BOID_BMP_PATH)
+# Boid appearance
 BOID_SCALING_FACTOR = 1
-NUMBER_OF_BOIDS = 200
 BOID_POLYGON: ndarray = array(
     [
         [0, 0],
@@ -29,14 +26,31 @@ BOID_POLYGON: ndarray = array(
     ],
     dtype=float,
 )
+
+# sim stuff
+NUM_BOIDS = 200
 MIN_SPEED = 1
 MAX_SPEED = 500
 MAX_STARTING_SPEED = 50
-MAX_ACCELERATION = 10
-VISION_RADIUS = 150
+MAX_FORCE = 10
+VISION_RADIUS = 50
+SEPARATION_RADIUS = 20
+DRAG_COEFFICIENT = 0.01
 
-ALIGNMENT_WEIGHT = 6
-COHESION_WEIGHT = 9
+# weights
+ALIGNMENT_WEIGHT = 5
+COHESION_WEIGHT = 6
 SEPARATION_WEIGHT = 10
 
-DRAG = 0.01
+# behavior flags
+ENABLE_SEPARATION = True
+ENABLE_ALIGNMENT = True
+ENABLE_COHESION = True
+
+# debug flags
+SHOW_VISION_RADIUS = False
+SHOW_VELOCITY_VECTORS = False
+SHOW_FORCE_VECTORS = False
+
+# other flags
+ENABLE_BOUNDARY_WRAPPING = True

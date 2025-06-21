@@ -1,90 +1,72 @@
-import pygame as pg
 from random import randint
+import pygame as pg
+
 from consts import *
 from boid import Boid
 
 
-def init_pygame() -> pg.Surface:
-    pg.init()
-    screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    pg.display.set_caption(WINDOW_TITLE)
-    return screen
-
-
-def handle_events() -> None:
-    pass  # placeholder
-
-
-def simulate(boids: list[Boid]) -> list[Boid]:
-    for i, boid_i in enumerate(boids):
-        neighbors: list[Boid] = []
-        for j, boid_j in enumerate(boids):
-            if i == j:
-                continue
-
-            if boid_i.distance_to(boid_j) < VISION_RADIUS:
-                neighbors.append(boid_j)
-
-        boid_i.interact(neighbors)
-
-    for boid in boids:
-        boid.update()
-
-    return boids
-
-
-def init_boids() -> list[Boid]:
-    boids: list[Boid] = []
-    for _ in range(NUMBER_OF_BOIDS):
+def crete_boids() -> list[Boid]:
+    boids = []
+    for _ in range(NUM_BOIDS):
         position = pg.Vector2(randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT))
         boids.append(Boid(position))
 
     return boids
 
 
-def draw_boids(boids: list[Boid], surface: pg.Surface) -> None:
+def handle_events() -> None:
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            return False
+
+    return True
+
+
+def render_frame(surface: pg.Surface, boids: list[Boid]) -> None:
+    surface.fill(BG)  # clear screen
     for boid in boids:
         boid.draw(surface)
-        # pg.draw.circle(
-        #     surface,
-        #     WHITE,
-        #     (int(boid.position.x), int(boid.position.y)),
-        #     VISION_RADIUS,
-        #     1,
-        # )
 
-        # pg.draw.line(
-        #     surface,
-        #     GREEN,
-        #     (int(boid.position.x), int(boid.position.y)),
-        #     (
-        #         int(boid.position.x + boid.velocity.x / 2),
-        #         int(boid.position.y + boid.velocity.y / 2),
-        #     ),
-        # )
+    pg.display.flip()  # update the display
+
+
+def get_neighbors(target: Boid, boids: list[Boid]) -> list[Boid]:
+    neighbors = []
+    for boid in boids:
+        if boid != target and target.distance_to(boid) < VISION_RADIUS:
+            neighbors.append(boid)
+    return neighbors
+
+
+def precompute_neighbors(boids: list[Boid]) -> dict[Boid, list[Boid]]:
+    neighbor_map = {}
+    for boid in boids:
+        neighbor_map[boid] = get_neighbors(boid, boids)
+    return neighbor_map
+
+
+def simulate(boids: list[Boid]) -> None:
+    neighbor_map = precompute_neighbors(boids)
+    for boid in boids:
+        boid.update(neighbor_map[boid])
 
 
 def main() -> None:
-
-    boids = init_boids()
-    screen = init_pygame()
+    pg.init()
+    screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pg.display.set_caption(WINDOW_TITLE)
     clock = pg.time.Clock()
 
-    # typical pygame loop
+    boids = crete_boids()
+
     running = True
     while running:
-        for event in pg.event.get():
-            handle_events()
-            if event.type == pg.QUIT:
-                running = False
-
-        screen.fill(BG)  # clear screen
-
-        boids = simulate(boids)
-        draw_boids(boids, screen)
-
-        pg.display.flip()
+        running = handle_events()
+        simulate(boids)
+        render_frame(screen, boids)
         clock.tick(FPS)
+
+    pg.quit()
 
 
 if __name__ == "__main__":
