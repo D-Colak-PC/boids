@@ -34,7 +34,7 @@ def render_frame(surface: pg.Surface, boids: list[Boid]) -> None:
 def get_neighbors(target: Boid, boids: list[Boid]) -> list[Boid]:
     neighbors = []
     for boid in boids:
-        if boid != target and target.distance_to(boid) < VISION_RADIUS:
+        if boid != target and target.distance_to_squared(boid) <= VISION_RADIUS_SQUARED:
             neighbors.append(boid)
     return neighbors
 

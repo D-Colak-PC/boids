@@ -30,9 +30,9 @@ class Boid:
     def separation(self, neighbors: list["Boid"]) -> Vector2:
         separation_force = Vector2(0, 0)
         for neighbor in neighbors:
-            if self.distance_to(neighbor) <= SEPARATION_RADIUS:
+            distance_squared = max(self.distance_to_squared(neighbor), 1e-5)
+            if distance_squared <= SEPARATION_RADIUS_SQUARED:
                 difference = self.position - neighbor.position
-                distance_squared = difference.length_squared() or 1e-5
                 strength = 1 / distance_squared
                 separation_force += difference.normalize() * strength
 
@@ -146,7 +146,7 @@ class Boid:
         integer_position = (int(self.position.x), int(self.position.y))
 
         if SHOW_VISION_RADIUS:
-            circle(surface, WHITE, integer_position, VISION_RADIUS, 1)
+            circle(surface, WHITE, integer_position, VISION_RADIUS_SQUARED, 1)
 
         if SHOW_VELOCITY_VECTORS and self.velocity.length() > 0:
             velocity_end = (
