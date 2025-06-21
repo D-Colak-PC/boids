@@ -3,9 +3,10 @@ import pygame as pg
 
 from consts import *
 from boid import Boid
+from monitor import PerformanceMonitor
 
 
-def crete_boids() -> list[Boid]:
+def create_boids() -> list[Boid]:
     boids = []
     for _ in range(NUM_BOIDS):
         position = pg.Vector2(randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT))
@@ -57,13 +58,27 @@ def main() -> None:
     pg.display.set_caption(WINDOW_TITLE)
     clock = pg.time.Clock()
 
-    boids = crete_boids()
+    monitor = PerformanceMonitor()
+
+    boids = create_boids()
 
     running = True
     while running:
+        monitor.start_frame()
+
         running = handle_events()
+
+        monitor.start_simulation()
         simulate(boids)
+        monitor.end_simulation()
+
+        monitor.start_rendering()
         render_frame(screen, boids)
+        monitor.end_rendering()
+
+        monitor.end_frame()
+        monitor.print_performance()
+
         clock.tick(FPS)
 
     pg.quit()
