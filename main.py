@@ -4,6 +4,7 @@ import pygame as pg
 from consts import *
 from boid import Boid
 from monitor import PerformanceMonitor
+from grid import SpatialGrid
 
 
 def create_boids() -> list[Boid]:
@@ -31,23 +32,26 @@ def render_frame(surface: pg.Surface, boids: list[Boid]) -> None:
     pg.display.flip()  # update the display
 
 
-def get_neighbors(target: Boid, boids: list[Boid]) -> list[Boid]:
-    neighbors = []
+def populate_grid(boids: list[Boid], spatial_grid: SpatialGrid) -> SpatialGrid:
     for boid in boids:
-        if boid != target and target.distance_to_squared(boid) <= VISION_RADIUS_SQUARED:
-            neighbors.append(boid)
-    return neighbors
+        spatial_grid.add_boid(boid)
+    return spatial_grid
 
 
-def precompute_neighbors(boids: list[Boid]) -> dict[Boid, list[Boid]]:
+def precompute_neighbors(
+    boids: list[Boid], spatial_grid: SpatialGrid
+) -> dict[Boid, list[Boid]]:
     neighbor_map = {}
     for boid in boids:
-        neighbor_map[boid] = get_neighbors(boid, boids)
+        neighbor_map[boid] = spatial_grid.get_nearby_boids(boid)
+
     return neighbor_map
 
 
-def simulate(boids: list[Boid]) -> None:
-    neighbor_map = precompute_neighbors(boids)
+def simulate(boids: list[Boid], spatial_grid: SpatialGrid) -> None:
+    spatial_grid.reset()
+    spatial_grid = populate_grid(boids, spatial_grid)
+    neighbor_map = precompute_neighbors(boids, spatial_grid)
     for boid in boids:
         boid.update(neighbor_map[boid])
 
@@ -62,6 +66,8 @@ def main() -> None:
 
     boids = create_boids()
 
+    spatial_grid = SpatialGrid()
+
     running = True
     while running:
         monitor.start_frame()
@@ -69,7 +75,7 @@ def main() -> None:
         running = handle_events()
 
         monitor.start_simulation()
-        simulate(boids)
+        simulate(boids, spatial_grid)
         monitor.end_simulation()
 
         monitor.start_rendering()
