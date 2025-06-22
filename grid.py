@@ -16,6 +16,9 @@ class SpatialGrid:
             for j in range(self.cols):
                 self.grid[i, j] = []
 
+        # no reallocation
+        self.temp_neighbors = []
+
     def reset(self):
         for i in range(self.rows):
             for j in range(self.cols):
@@ -29,12 +32,27 @@ class SpatialGrid:
     def add_boid(self, boid: Boid):
         col, row = self.get_cell_coords(boid.position.x, boid.position.y)
         self.grid[row, col].append(boid)
+        boid.grid_cell = (col, row)  # store the cell for quick access later
 
-    def get_nearby_boids(self, boid: Boid) -> list:
-        col, row = self.get_cell_coords(boid.position.x, boid.position.y)
+    def upgrade_boid_position(self, boid: Boid) -> None:
+        new_cell = self.get_cell_coords(boid.position.x, boid.position.y)
 
-        nearby_boids = []
+        if new_cell != boid.grid_cell and boid.grid_cell is not None:
+            old_col, old_row = boid.grid_cell
+            self.grid[old_row, old_col].remove(boid)
+            new_col, new_row = new_cell
+            self.grid[new_row, new_col].append(boid)
+            boid.grid_cell = new_cell
 
+    def get_nearby_boids(self, boid: Boid) -> list[Boid]:
+
+        self.temp_neighbors.clear()
+
+        # check for null
+        if boid.grid_cell is None:
+            col, row = self.get_cell_coords(boid.position.x, boid.position.y)
+        else:
+            col, row = boid.grid_cell
         # check 3x3 grid around boid cell
         for row_offset in [-1, 0, 1]:
             for col_offset in [-1, 0, 1]:
@@ -49,12 +67,11 @@ class SpatialGrid:
                     continue  # skip cells out of the grid
 
                 potential_boids = self.grid[check_row, check_col]
-
                 for other_boid in potential_boids:
                     if boid == other_boid:  # boid cant be its own neighbor
                         continue
 
-                    if boid.distance_to_squared(other_boid) < VISION_RADIUS_SQUARED:
-                        nearby_boids.append(other_boid)
+                    if boid.distance_to_squared(other_boid) <= VISION_RADIUS_SQUARED:
+                        self.temp_neighbors.append(other_boid)
 
-        return nearby_boids
+        return self.temp_neighbors.copy()

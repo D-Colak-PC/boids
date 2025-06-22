@@ -32,10 +32,15 @@ def render_frame(surface: pg.Surface, boids: list[Boid]) -> None:
     pg.display.flip()  # update the display
 
 
-def populate_grid(boids: list[Boid], spatial_grid: SpatialGrid) -> SpatialGrid:
+def initialize_spatial_grid(boids: list[Boid], spatial_grid: SpatialGrid) -> None:
+    spatial_grid.reset()
     for boid in boids:
         spatial_grid.add_boid(boid)
-    return spatial_grid
+
+
+def update_grid(boids: list[Boid], spatial_grid: SpatialGrid) -> None:
+    for boid in boids:
+        spatial_grid.upgrade_boid_position(boid)
 
 
 def precompute_neighbors(
@@ -49,8 +54,7 @@ def precompute_neighbors(
 
 
 def simulate(boids: list[Boid], spatial_grid: SpatialGrid) -> None:
-    spatial_grid.reset()
-    spatial_grid = populate_grid(boids, spatial_grid)
+    update_grid(boids, spatial_grid)
     neighbor_map = precompute_neighbors(boids, spatial_grid)
     for boid in boids:
         boid.update(neighbor_map[boid])
@@ -67,6 +71,7 @@ def main() -> None:
     boids = create_boids()
 
     spatial_grid = SpatialGrid()
+    initialize_spatial_grid(boids, spatial_grid)
 
     running = True
     while running:

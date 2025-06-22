@@ -19,6 +19,8 @@ class Boid:
         speed = uniform(MIN_SPEED, MAX_STARTING_SPEED)
         self.velocity = Vector2(cos(angle) * speed, sin(angle) * speed)
 
+        self.grid_cell: tuple[int, int] = None
+
     def distance_to(self, other: "Boid") -> float:
         return self.position.distance_to(other.position)
 
